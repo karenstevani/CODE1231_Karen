@@ -1,0 +1,56 @@
+#Week 2 practice
+
+
+
+# Write your code here :-)
+import digitalio
+import board
+import time
+
+led = digitalio.DigitalInOut(board.D1)
+led.switch_to_output()
+
+button = digitalio.DigitalInOut(board.BUTTON_A)
+button.switch_to_input(pull=digitalio.Pull.DOWN)
+
+while True:
+    if button.value:
+        led.value = True
+    else:
+        led.value = False
+    time.sleep(0.01)
+
+
+import pwmio
+import board
+
+MAX_CYCLE= 2 ** 16
+
+led = pwmio.PWMOut(board.D1)
+
+while True:
+    for cycle in range(0, MAX_CYCLE):
+        led.duty_cycle = cycle
+    for cycle in range(MAX_CYCLE-1, 0, -1):
+        led.duty_cycle = cycle
+
+
+import time
+import board
+from analogio import AnalogOut
+import digitalio
+
+led = AnalogOut(board.A0)
+MAX_CYCLE= 2 ** 16
+
+button = digitalio.DigitalInOut(board.BUTTON_A)
+button.switch_to_input(pull=digitalio.Pull.DOWN)
+
+while True:
+    for cycle in range(0, MAX_CYCLE, 64):
+        led.value = i
+        time.sleep(0.01)
+    for i in range(MAX_CYCLE-1, 0, 64):
+        led.value = i
+        time.sleep(0.01)
+
