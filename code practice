@@ -3,54 +3,76 @@
 
 
 # Write your code here :-)
+import board
 import digitalio
-import board
 import time
+import analogio
+from adafruit_circuitplayground import cp
 
-led = digitalio.DigitalInOut(board.D1)
-led.switch_to_output()
+# Define button pins and set up buttons with pull-up resistors
+button_pins = [board.A2, board.A3, board.A4, board.A5, board.A6, board.A7]
+buttons = []
 
-button = digitalio.DigitalInOut(board.BUTTON_A)
-button.switch_to_input(pull=digitalio.Pull.DOWN)
+for pin in button_pins:
+    button = digitalio.DigitalInOut(pin)
+    button.direction = digitalio.Direction.INPUT
+    button.pull = digitalio.Pull.UP  # Button is normally high, pressed is low
+    buttons.append(button)
 
+led_colors = [(255, 0, 0),    
+              (255, 0, 0),    
+              (255, 0, 0),    
+              (255, 0, 0),  
+              (255, 0, 0),  
+              (255, 0, 0)]  
+
+# sound
+mic = analogio.AnalogIn(board.A1)
+SOUND_THRESHOLD = 35000  # Lower for more sensitivity
+
+SOUND_DELAY_TIME = 1  # 1 second delay before playing the sound again
+
+last_sound_time = None
+
+# Function to read the microphone level
+def read_mic():
+    return mic.value  
+
+cp.play_tone(440, 1)  
+time.sleep(2)  
+
+# Main loop
 while True:
-    if button.value:
-        led.value = True
-    else:
-        led.value = False
-    time.sleep(0.01)
+    current_time = time.monotonic()  # Track the current time
 
+    # Loop through each button and check its state independently
+    for i, button in enumerate(buttons):
+        if not button.value:  # Button pressed (value is LOW)
+            # Turn on the corresponding LED color
+            cp.pixels[i] = led_colors[i]
+        else:
+            # Turn off the LED when button is not pressed
+            cp.pixels[i] = (0, 0, 0)
 
-import pwmio
-import board
+    # Read the microphone level
+    sound_level = read_mic()  # Get the microphone sound level
 
-MAX_CYCLE= 2 ** 16
+    # Print the current sound level for debugging
+    print(f"Sound Level: {sound_level}")
 
-led = pwmio.PWMOut(board.D1)
+    # If sound is detected and above the threshold
+    if sound_level > SOUND_THRESHOLD:
+        # Get the current time
+        current_time = time.monotonic()
 
-while True:
-    for cycle in range(0, MAX_CYCLE):
-        led.duty_cycle = cycle
-    for cycle in range(MAX_CYCLE-1, 0, -1):
-        led.duty_cycle = cycle
+        # Check if the delay time has passed since the last sound was played
+        if last_sound_time is None or current_time - last_sound_time >= SOUND_DELAY_TIME:
+            last_sound_time = current_time  # Update the last sound detection time
 
+            # Sound detected! Play a sound (tone) as feedback
+            print("Sound detected! Playing tone.")
+            cp.play_tone(440, 0.5)  # Play a 440 Hz tone (A4) for 0.5 seconds
+            time.sleep(0.1)  # Small delay to avoid spamming sounds
 
-import time
-import board
-from analogio import AnalogOut
-import digitalio
-
-led = AnalogOut(board.A0)
-MAX_CYCLE= 2 ** 16
-
-button = digitalio.DigitalInOut(board.BUTTON_A)
-button.switch_to_input(pull=digitalio.Pull.DOWN)
-
-while True:
-    for cycle in range(0, MAX_CYCLE, 64):
-        led.value = i
-        time.sleep(0.01)
-    for i in range(MAX_CYCLE-1, 0, 64):
-        led.value = i
-        time.sleep(0.01)
-
+    # Optional: Add a small delay to prevent overloading the processor
+    time.sleep(0.05)  # Delay to allow time for button checks and sound processing
