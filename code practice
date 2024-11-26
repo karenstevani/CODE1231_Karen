@@ -28,7 +28,7 @@ led_colors = [(255, 0, 0),
 
 # sound
 mic = analogio.AnalogIn(board.A1)
-SOUND_THRESHOLD = 35000  # Lower for more sensitivity
+SOUND_THRESHOLD = 10000  # Lower for more sensitivity
 
 SOUND_DELAY_TIME = 1  # 1 second delay before playing the sound again
 
